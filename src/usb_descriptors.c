@@ -119,11 +119,11 @@ static uint16_t desc_str[32];
 static char const *string_desc_arr[STRID_COUNT] =
 {
     (const char[]){ 0x09, 0x04 },    // 0: LANGID (English)
-    "MonoSync",                      // 1: Manufacturer
+    "rusaaKKMODS",                      // 1: Manufacturer
     "MonoSync Lite",                 // 2: Product
     "0001",                          // 3: Serial
     "MonoSync Gamepad",              // 4: HID interface
-    "MonoSync MIDI",                 // 5: MIDI interface
+    "MonoSync Lite MIDI",                 // 5: MIDI interface
 };
 
 uint16_t const * tud_descriptor_string_cb(uint8_t index, uint16_t langid)

@@ -36,6 +36,10 @@ pico_sdk_init()
 # Add executable. Default name is the project name, version 0.1
 set(COMMON_SOURCES
     src/main.c
+    src/input.c
+    src/engine.c
+    src/usb_gamepad.c
+    src/usb_midi.c
     src/usb_descriptors.c
 )
 
@@ -64,7 +68,7 @@ target_include_directories(MonoSync_Controller PRIVATE
 )
 
 pico_enable_stdio_usb(MonoSync_Controller 0)
-pico_enable_stdio_uart(MonoSync_Controller 1)
+pico_enable_stdio_uart(MonoSync_Controller 0) # No serial printing for now
 
 pico_add_extra_outputs(MonoSync_Controller)
 
