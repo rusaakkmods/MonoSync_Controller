@@ -8,11 +8,17 @@
 #define BUTTON_SENTINEL    0xFFu
 #define POT_SENTINEL       0xFFu
 
+#define DEFAULT_CC_CHANNEL 1
+
+#define CTL1_CC        20
+#define CTL2_CC        21
+#define CTL3_CC        22
+#define CTL4_CC        23
+
 static controller_state_t last_state;
 
-// CC mapping
-static const uint8_t pot_cc_map[NUM_POTS] = { 20, 21, 22, 23 };
-static const uint8_t midi_channel         = 1; // 1..16
+static const uint8_t pot_cc_map[NUM_POTS] = { CTL1_CC, CTL2_CC, CTL3_CC, CTL4_CC };
+static const uint8_t midi_channel         = DEFAULT_CC_CHANNEL;
 
 void engine_init(void)
 {
@@ -28,8 +34,6 @@ void engine_init(void)
 void engine_process(const controller_state_t *st)
 {
     bool changed = false;
-
-    // Gamepad: send every loop (internal TU can compress)
     usb_gamepad_update(st);
 
     if (st->buttons != last_state.buttons) {
@@ -48,7 +52,6 @@ void engine_process(const controller_state_t *st)
         return;
     }
 
-    // MIDI: send CC for pots that changed
     for (int i = 0; i < NUM_POTS; ++i) {
         if (st->pots[i] != last_state.pots[i]) {
             usb_midi_send_cc(midi_channel, pot_cc_map[i], st->pots[i]);

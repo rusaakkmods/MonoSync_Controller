@@ -5,13 +5,13 @@
 
 #define GAMEPAD_REPORT_ID  1
 
-// Match POC axis ranges
 #define GAMEPAD_AXIS_MIN   (-127)
 #define GAMEPAD_AXIS_MAX   (127)
 
 void usb_gamepad_init(void)
 {
-    // nothing special; TinyUSB is initialized in main.c
+    // Placeholder for initialization (Decorator)
+    // TinyUSB is initialized in main.c
 }
 
 void usb_gamepad_update(const controller_state_t *st)
@@ -21,7 +21,6 @@ void usb_gamepad_update(const controller_state_t *st)
     hid_gamepad_report_t report;
     memset(&report, 0, sizeof(report));
 
-    // Start centered
     report.x  = 0;
     report.y  = 0;
     report.z  = 0;

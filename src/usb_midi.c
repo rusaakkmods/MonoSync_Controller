@@ -6,7 +6,8 @@
 
 void usb_midi_init(void)
 {
-    // nothing special, TinyUSB device init happens in main via tusb_init()
+    // Placeholder for initialization (Decorator)
+    // TinyUSB is initialized in main.c
 }
 
 void usb_midi_send_cc(uint8_t channel, uint8_t cc, uint8_t value)

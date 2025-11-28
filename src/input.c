@@ -22,25 +22,18 @@
 #define GPIO_POT3        28   // ADC2
 #define GPIO_POT4        29   // ADC3
 
-// ---------------------
 // POT STABILIZER CONFIG
-// ---------------------
-
-// ADC characteristics
-#define ADC_MAX_VALUE            4095.0f
-
-// Oversampling
-#define POT_OVERSAMPLE_COUNT     32
+#define ADC_MAX_VALUE           4095.0f
+#define POT_OVERSAMPLE_COUNT    32
+#define MIDI_MIN_VALUE          0
+#define MIDI_MAX_VALUE          127
+#define POT_RANGE_OFFSET        16
+#define POT_SMOOTH_ALPHA         0.10f
+#define POT_CHANGE_THRESHOLD     1.0f
 
 // Virtual extended MIDI range, to kill edge twitching
-#define POT_VIRTUAL_MIN         -16.0f    // below 0
-#define POT_VIRTUAL_MAX         143.0f    // above 127
-
-// EMA smoothing factor (0 < alpha <= 1)
-#define POT_SMOOTH_ALPHA         0.10f    // heavier smoothing
-
-// Minimum change (in MIDI steps) before new stable value is accepted
-#define POT_CHANGE_THRESHOLD     1.0f
+#define POT_VIRTUAL_MIN         (MIDI_MIN_VALUE - POT_RANGE_OFFSET)
+#define POT_VIRTUAL_MAX         (MIDI_MAX_VALUE + POT_RANGE_OFFSET)
 
 typedef struct {
     float   filtered_f;      // EMA-smoothed virtual value
@@ -48,10 +41,6 @@ typedef struct {
 } pot_internal_t;
 
 static pot_internal_t pots_internal[NUM_POTS];
-
-// ---------------------
-// INTERNAL HELPERS
-// ---------------------
 
 static void init_buttons(void)
 {
@@ -64,7 +53,7 @@ static void init_buttons(void)
     {
         gpio_init(btn_pins[i]);
         gpio_set_dir(btn_pins[i], GPIO_IN);
-        gpio_pull_up(btn_pins[i]);   // active LOW
+        gpio_pull_up(btn_pins[i]);
     }
 }
 
@@ -84,7 +73,6 @@ static void init_pots(void)
     }
 }
 
-// Oversampled ADC read
 static uint16_t adc_read_oversampled(uint channel)
 {
     adc_select_input(channel);
@@ -97,23 +85,18 @@ static uint16_t adc_read_oversampled(uint channel)
     return (uint16_t)(acc / POT_OVERSAMPLE_COUNT);
 }
 
-// Map raw ADC → virtual extended range → clamp to 0..127
 static float adc_to_virtual(uint16_t raw)
 {
-    float norm = (float)raw / ADC_MAX_VALUE;  // 0..1
+    float norm = (float)raw / ADC_MAX_VALUE;
 
     float v = POT_VIRTUAL_MIN +
               norm * (POT_VIRTUAL_MAX - POT_VIRTUAL_MIN);
 
-    if (v < 0.0f)   v = 0.0f;
-    if (v > 127.0f) v = 127.0f;
+    if (v < MIDI_MIN_VALUE)   v = (float) MIDI_MIN_VALUE;
+    if (v > MIDI_MAX_VALUE) v = (float) MIDI_MAX_VALUE;
 
     return v;
 }
-
-// ---------------------
-// PUBLIC API
-// ---------------------
 
 void input_init(void)
 {
@@ -123,7 +106,6 @@ void input_init(void)
 
 void input_update(controller_state_t *st)
 {
-    // --- buttons ---
     uint8_t buttons = 0;
     buttons |= (!gpio_get(GPIO_BTN_UP)     ? (1u << 0) : 0);
     buttons |= (!gpio_get(GPIO_BTN_DOWN)   ? (1u << 1) : 0);
@@ -133,22 +115,19 @@ void input_update(controller_state_t *st)
     buttons |= (!gpio_get(GPIO_BTN_B)      ? (1u << 5) : 0);
     buttons |= (!gpio_get(GPIO_BTN_START)  ? (1u << 6) : 0);
     buttons |= (!gpio_get(GPIO_BTN_SELECT) ? (1u << 7) : 0);
-
     st->buttons = buttons;
 
-    // --- pots ---
     uint16_t raw0 = adc_read_oversampled(0);
     uint16_t raw1 = adc_read_oversampled(1);
     uint16_t raw2 = adc_read_oversampled(2);
     uint16_t raw3 = adc_read_oversampled(3);
-
     uint16_t raws[NUM_POTS] = { raw0, raw1, raw2, raw3 };
 
     for (int i = 0; i < NUM_POTS; ++i)
     {
         float v = adc_to_virtual(raws[i]);
 
-        // first-time init
+        // init
         if (pots_internal[i].filtered_f == 0.0f &&
             pots_internal[i].stable_f   == 0.0f)
         {
@@ -162,17 +141,17 @@ void input_update(controller_state_t *st)
             pots_internal[i].filtered_f += diff * POT_SMOOTH_ALPHA;
         }
 
-        // Hysteresis in MIDI step space
+        // Hysteresis
         float delta = pots_internal[i].filtered_f - pots_internal[i].stable_f;
         if (delta >= POT_CHANGE_THRESHOLD || delta <= -POT_CHANGE_THRESHOLD)
         {
             pots_internal[i].stable_f = pots_internal[i].filtered_f;
         }
 
-        // Quantize to 0..127
+        // Quantize/clamp
         float stable = pots_internal[i].stable_f;
-        if (stable < 0.0f)   stable = 0.0f;
-        if (stable > 127.0f) stable = 127.0f;
+        if (stable < MIDI_MIN_VALUE)   stable = (float) MIDI_MIN_VALUE;
+        if (stable > MIDI_MAX_VALUE) stable = (float) MIDI_MAX_VALUE;
 
         uint8_t midi_val = (uint8_t)(stable + 0.5f);
         st->pots[i] = midi_val;
