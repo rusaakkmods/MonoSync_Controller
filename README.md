@@ -1,4 +1,12 @@
+
 # MonoSync Controller Firmware
+
+## Project Preview
+
+![MonoSync Lite Internal Wiring](documents/preview1.jpg)
+![MonoSync Lite Pots Board](documents/preview2.jpg)
+
+[▶️ Demo Video](https://www.youtube.com/watch?v=YOUR_VIDEO_ID)
 
 **MonoSync** is a unified USB Gamepad + USB MIDI Controller platform built around the RP2040, supporting two hardware tiers: **MonoSync Lite** and **MonoSync XL**. This repository contains the firmware for both models, designed for modularity, stability, and cross-platform compatibility.
 

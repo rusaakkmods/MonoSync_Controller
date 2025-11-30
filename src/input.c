@@ -12,10 +12,10 @@
 #define GPIO_BTN_DOWN    3
 #define GPIO_BTN_LEFT    4
 #define GPIO_BTN_RIGHT   5
-#define GPIO_BTN_A       6
-#define GPIO_BTN_B       7
-#define GPIO_BTN_START   8
-#define GPIO_BTN_SELECT  9
+#define GPIO_BTN_A       9
+#define GPIO_BTN_B       8
+#define GPIO_BTN_START   7
+#define GPIO_BTN_SELECT  6
 
 #define GPIO_POT1        26   // ADC0
 #define GPIO_POT2        27   // ADC1
